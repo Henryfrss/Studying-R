@@ -41,3 +41,80 @@ salario <- data.frame(
 t(salario)
 mean((salario$X+salario$Y)/2)
 var(salario$X, y=salario$Y)
+
+#(6.1)Equação da regressão linear
+#(6.2)Faça uma previsao de quanto ganharia uma mulher cujo 
+#homem está ganhando 22000 anuais
+
+lm(amostra$Y ~ amostra$X)
+#Y = a +bX
+# a = (Intercept) ou (coeficiente angular - parâmetro da regressão)
+# b = amostra$x ou (coeficiente linear)
+
+###Equação da regressão linear###
+#Y = 2.6897 + 0.6207*X
+y <- 2.6897 + (0.6207*22000)
+y
+#Interpretação
+#Como os valores de salários estão em ordem de milhares de reais
+#Para um salário do homem no valor igual a "0"
+#Temos que uma mulher tem um salário 
+#no valor de 2.6887*1000 = 2688,70
+
+#E para um salário do homem = 1000
+#Temos um salário da mulher igual => 2.6897 + (0.6207*1000)
+# Y => 623.3897
+
+#Regression line - utilizando ggplot2
+#linhas abaixos retirados do livro Practical Statistics for Data Scientists
+library(ggplot2)
+ggplot(amostra, aes(X,Y)) + geom_point() + stat_smooth(method = "lm")  
+
+###OBS in ggplot: if you get the error "invalid graphics state"
+  #try to run
+dev.off()
+
+#how to check the quality of linear regression model
+model <- lm(amostra$Y ~ amostra$X)
+summary(model)
+
+#Call = shows the function call used to compute regression model
+#
+#Residuals = Provide a quick view of the distribution of the residuals
+#             which by definition have a mean zero. Therefore, the median 
+#              should not be far from zero, and the minimun and maximum should
+#               be roughly equal in absolute value
+#
+#Coeficients = Shows the regression beta coefficients and their statistical signigicance.
+#               Predictor variables, that are significantly associated to the outcome variable
+#                 are marked by stars
+#
+# *Residual standard error (RSE) - The average variation of point around the fitted regression line
+#                   ###the lower the RSE, the better it is###
+# *R-squared(R2)
+# *F-stastistic 
+###   these three are metrics that are used to check how weel the model fits to our data
+
+#Coeficients:
+##Estimate Std.Error = the standard errors(SE), 
+#   which defines the accuracy of beta coefficients.
+#     for a given beta coefficient, the SE reflects how the coefficient varies
+#       under repeated sampling, it can be used to compute the confidence intervals 
+#         and the t-statistic.
+#
+#t-statistic and the associated p-value,
+#   which defines the statistical significance of the beta coefficients
+#
+
+####t-statistic and p-values####
+#The statistical hypotheses are as follow:
+#   *Null Hypothesis (H0): the coefficients are equal to zero
+#     (i.e., no relationship between x and y)
+#   *Alternative Hypothesis (Ha): the coefficients are not equal to zero
+#     (i.e., there is some relationship between x and y)
+
+#t-statistic => t = (b - 0)/SE(b)
+#   measures the number of standard deviations that b is away from 0,
+#     Thus a large t-statistic will produce a small p-value
+######   The higher t-statistic (and the lower the p-value),#####
+######      the more significant the predictor              #####
