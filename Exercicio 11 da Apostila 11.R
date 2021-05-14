@@ -38,7 +38,7 @@ table(class)
 transform(table(class))
 #cria um objeto para essa tabela
 Freq <- transform(table(class))
-
+Freq
 #Cria a coluna de Frequencia Relativa e
 # as Colunas de Frequencia acumulativas
 Freq.sum <- transform(Freq, Cum_Freq=cumsum(Freq), Rel_Freq=prop.table(Freq), Cum_RFreq=cumsum(prop.table(Freq)))
@@ -53,3 +53,4 @@ hist(amostra, breaks = 5)
 
 # Una os pontos médios de cada retangulo, obtendo o poligono de frequencias
 # relativas e classique o conjunto quando a assimetria
+
