@@ -24,6 +24,7 @@ sd(amostra$Y)
 scatter.smooth(amostra, span = 3)
 
 #(5.4)Encontre a correlação entre o salario anual dos homens e das mulheres
+cor(amostra$X, amostra$Y)
 cor.test(amostra$X,amostra$Y)
 ###cor = 0.9649013
 #correlação positiva forte
