@@ -1,0 +1,197 @@
+---
+title: "Important notes about Replication"
+author: "Henry Frederick Ridwan Surjadi"
+date: "17 de maio de 2021"
+output: html_document
+---
+# README
+* This is some notes about the book of *Report Writing for Data Science in R - By Roger D. Peng*, and i'm praticing the use of the Rmarkdown
+
+# Reproducibility
+* The institute of Medicine (IOM) issued a report saying that the best practices should be done to promote and encourage reproducibility, the key recommendations are:
+  + Data and metadata need to be made available;
+  + Computer code should be fully specified, so that people can examine it to see what was done;
+  + All the steps of the computational analysis, including any preprocessing of data, should be fully described so that people can study it and reproduce it.
+
+# Replication
+* Whereby scientific questions are examined and verified independently by different scientists to obtain the same results of the original investigator, is the gold standard for scientific validity.
+
+## Elements of Reproducibility
+* The four things that are required to make result reproducible:
+  + **Analytic data**
+    - Should be available for others to access.
+  + **Analytic code**
+    - The code that was applied to the analytic data to produce the key results.
+  + **Documentation**
+    - of the code and data is very important.
+  + **Distribution**
+    - code is easily accessible.
+
+##  Literate Statistical programming
+* The ideia is a publication as a stream of text and code using tools that can make it easier to write up reproducible documents containing data analyses. The analysis is described in a series of text and code chunks. They can be processed in two important ways:
+  + **Weaving**
+    - Literate programs can be **weaved** to produce humam readable documents like PDFs or HTML web pages.
+  + **Tangling**
+    - To produce machine-readable "documents", or in other words, machine readable code.
+    
+##  Final Report
+* The important thing is that you need to tell a coherent story, to take all the analysis that you did and kind of winnow it down into a final product that has a coherent story of it.
+
+# Structure of a Data Analysis
+* The steps in a data analysis:
+  + [Defining the question](#css_1)
+  + [Defining the ideal dataset](#css_2)
+  + [Determining what data you can access](#css_3)
+  + [Obtaining the data](#css_4)
+  + [Cleaning the data](#css_5)
+  + [Exploratory data analysis](#css_6)
+  + [Statistical prediction/modeling](#css_7)
+  + [Interpretation of results](#css_8)
+  + [Challenging of results](#css_9)
+  + [Creating reproducible code](#css_10)
+  
+##  The Question {#css_1}
+* The more effort you can put into a reasonable question, the less effort you'll spend having to filter a lot of stuff.
+* Defining a question is the most powerful dimension reduction tool you can ever employ.
+  + Think about what type of question you are interested in answering *before* you go delving into all the details of your data set.
+    - Example of a question(*the bad*): can i automatically detect emails that are spam and those that are not?
+    - A concrete version of this questions(*the good*): can i use quantitative characteristics of the emails themselves to classify them as spam?
+
+##  The Ideal Dataset {#css_2}
+* If you are interested in a descriptive problem, you might think of a whole population. You don't need to sample anythin.
+* If you want to make inference about a problem, them you have to be very careful about the sampling mechanism and the definition of the population that you are sampling. 
+* When you make an **inferential statement**, you use your smaller sample to make a conclusion about a larger population.
+    + If you want to make a prediction, you need something like a **training set** and a **test data set** from a population, so you can build a **model** and **a classifier**.
+* if you want to make a **causal statement**, such as "if I modify this component, then something else happens," you are going to need experimental data.
+    + One type of experimental data is **a randomized trial or a randomized study**.
+
+## Determining what data you can access {#css_3}
+* In the real world, you will not be able to access all the data you want. Sometimes, you might be able to find free data on the web or you might be able to buy some data from a provider, being sure to respect the termos of use of the data. **The data has to be adhered to.**
+* If the data does not exists, you may need to generate the data yourself in someway.
+
+### The Real dataset {#css_4}
+* You have to be careful to reference the source, so wherever you get the data from, you should always reference and keep track of where it came from.
+* Remember to at least document the time you got that data and houw you got it.
+
+##  Cleaning the Data {#css_5}
+* The first thing you need to do with any data set is to clean it a little bit.
+* If the data is already pre-processed, it's important that you understand how it was done.
+
+* **The source of the data is very important and anything you do to clean the data needs to be recorded.**
+
+* Once you have cleaned the data, it's important to determine if the data are good enough to solve your problems.
+
+* If the data aren't good enough for your question, then you have to quit, try again, change the data, or try different question.
+
+* It's important to not simply push on with the data you have, just because that's all that you've got, because that can lead to inapropriate inferences or conclusions.
+
+* An example of a cleaned data is a data set from the *kernlab* package,  In the [URL](https://search.r-project.org/CRAN/refmans/kernlab/html/spam.html) where it shows you where the data set came from and how it's processed. 
+
+```{r}
+# If you don't have the package
+#install.packages("kernlab")
+```
+
+```{r}
+library(kernlab)
+data(spam)
+str(spam[,1:5])
+```
+
+### Splitting the Dataset
+* The first thing we need to do with this data set if we want to build a **model** to classify emails into spam or not, is that we need to split the data set into **test set** and a **training set**.
+* The ideia is that we are going to use part of the test of the data set to build our model, and the another part of the data set which is independent of the first part to determine how good out model is kind of making a prediction.
+
+```{r}
+library(kernlab)
+data(spam)
+
+##  Perform the subsampling
+set.seed(3435)
+trainIndicator <- rbinom(4601, size = 1, prob = 0.5)
+table(trainIndicator)
+```
+
+* Here I'm taking a random half of the data set, so i'm flipping a coin with the rbinom() function, to generate a random kind of coin flip with probability of half, so that'll separate the data set into two pieces.
+
+```{r}
+trainSpam <- spam[trainIndicator == 1, ]
+testSpam <- spam[trainIndicator == 0, ]
+```
+
+##  Exploratory data analysis {#css_6}
+* We want to look at basic summaries, one dimensional, two dimensional summaries of the data and we want to check for is there any missing data, why is there missing data, if there is, create some exploratory plots and do a little exploratory analyses.
+
+  - if we look at the column names of the dataset, you can see that they are all just words essentially.
+```{r}
+head(names(trainSpam), 20)
+```
+
+  - If we look at the first five rows, we can see that basically these are the frequencies at which they occur in a given email
+
+```{r}
+head(trainSpam[ , 1:10])
+```
+  - You can see the word "make" does not appear in that first email and, the word "mail" does not appear. These are all basically frequency counts, or frequencies of words within each of the emails. 
+  
+```{r}
+table(trainSpam$type)
+```
+
+  - If we look at the training data set and look at the outcome, we see that 906 of the email are spam, and the other 1381 are non-spam.
+  
+* This is what we are going to use to build our model for predicting the spam emails. We can make some plots and we can compare, what are the frequencies of certain characteristics between the spam and the non spam emails.
+
+  - Here we are looking at a variable called *capitalAve*, the average number of capital letters.
+```{r}
+boxplot(capitalAve ~ type , data = trainSpam)
+```
+
+  - You can see that it's difficult to look at this picture, because the data are highly skewed.
+* In these kind of situations it's often useful to just look at the log transformation of the cariable.
+  + Since there are a lot of zeros in this particular variable, taking the log of zero doesn't really make sense.
+  + We'll just add 1 to that variable, just so we can take the log and get a rough sense of what the data look like.
+    - Tipically, you wouldn't want to just add 1 to a variable just because. But since we are just exploring the data, making exploratory plots, it's okay to do that in this case.
+
+```{r}
+boxplot(log10(capitalAve + 1) ~ type, data = trainSpam)
+```
+
+* Here you can see clearly that the spam emails have a much higher rate of there capital letters than the non spam emails, and of course, ikf you have ever seen spam emails, you are probably familiar with that phenomenon, **And so that's one useful relationship to see there**.
+
+* We can look at pairwise relationships between the different variables in the plots. Here I've got a pairs plot of the first four variables, and this is the log transformation of each of the variables.
+
+```{r}
+pairs(log10(trainSpam[, 1:4] + 1))
+```
+
+* And you can see that some of them are correlated, some of them are not particularly correlated, and that's useful to know.
+
+* We can explore the predictors space a little bit more by doing **hierarchical cluster analysis**, and so this is a first cut at trying to do that with the hclust function in R. 
+
+* I plotted the Dendrogram just to see how what predictores or what words or characteristics tend to cluster together.
+
+```{r}
+hCluster <- hclust(dist(t(trainSpam[, 1:57])))
+plot(hCluster)
+```
+
+* it's not helpful at this point, although it does separate out this one variable, *capital total*. but if you recall, the clustering algorithms can be sensitive to any skewness in the distribution of the individual variables, so it may be useful to redo the clustering analysis after a transformation of the predictor space.
+
+```{r}
+hClusterUpdated <- hclust(dist(t(log10(trainSpam[, 1:55] + 1))))
+plot(hClusterUpdated)
+```
+
+* I have added one to each one, just to avoid taking the log of zero.
+* You can see separated ou a few clusters and this *capitalAve* is one kind of cluster all by itself.
+* There is another cluster that inclues *"you will"* or *"your"*.
+* And the there are a bunch of other words that lumo more ambiguously together. And so this may be something worth exploring a little bit further, if you see some particular characteristics that are interesting.
+
+### Summary
+* Once we have done exploratory data analysis, we have looked at some univariate and bivariate plots, we did a little cluster analysis, we can move on to doing a more sophisticated statistical model and some prediction modeling. 
+
+* As you do statistical modeling, you should always think about, what are the measures of uncertainty? What are the sources of uncertainty in your data set?
+
+##  Stastitical Modeling {#css_7}
+
