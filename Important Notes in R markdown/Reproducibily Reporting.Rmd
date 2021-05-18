@@ -12,6 +12,11 @@ output: html_document
   + Data and metadata need to be made available;
   + Computer code should be fully specified, so that people can examine it to see what was done;
   + All the steps of the computational analysis, including any preprocessing of data, should be fully described so that people can study it and reproduce it.
+* With reproducibility you get a number of important benefits:
+  + Transparency;
+  + Data and code for other to analyze;
+  + Increased rate of transfer of knowledge.
+* But **reproducibility does not guarantee validity or correctness of the analysis**
 
 # Replication
 * Whereby scientific questions are examined and verified independently by different scientists to obtain the same results of the original investigator, is the gold standard for scientific validity.
@@ -194,4 +199,108 @@ plot(hClusterUpdated)
 * As you do statistical modeling, you should always think about, what are the measures of uncertainty? What are the sources of uncertainty in your data set?
 
 ##  Stastitical Modeling {#css_7}
+
+* Let's go through each of the variables in the data set and try to fit a generalize linear model.
+  + in this case a logistic regression, to see if we can predict if an email is spam or not by using just a single variable.
+  + Using the reformulate function to create a formula that includes the responde, which is just the type of email and one of the variables of the data set, and we are going to cycle through all the variables in this data set using this for-loop to build a logistic regression model, and then subsequently calculate the cross validated error for predicting spam emails from a single variable.
+  
+```{r}
+trainSpam$numType <- as.numeric(trainSpam$type) - 1
+costFunction <- function(x, y) sum(x != (y > 0.5))
+cvError <- rep(NA, 55)
+library(boot)
+for (i in 1:55) {
+  lmFormula <- reformulate(names(trainSpam)[i], response = "numType")
+  glmFit <- glm(lmFormula, family = "binomial", data = trainSpam)
+  cvError[i] <- cv.glm(trainSpam, glmFit, costFunction, 2)$delta[2] 
+  #try to print this, to understand the cross validated error rate
+  #print(names(trainSpam[i]))
+  #print(cvError[i])
+}
+
+##  Which predictor has minumum cross-validated error?
+names(trainSpam)[which.min(cvError)]
+```
+
+* Once we have done this, we are going to figure out which of the individual variables has the minimum cross validated error rate.
+* It's turn out that *charDollar* is the minumum cross validated error. This is an indicator of the number of dollar signs in the email.
+* We can actually make predictions now from the model on the test data.
+* Now we are going to predict the outcome on the test data set to see how well we do.
+* In a logistic regression we don't get specific 0/1 classifications of each of the messages, we get a probability that a message is going to be a spam or not. Then we have to take this continuous probability, which ranges between 0 and 1, and determine at what poitn, at what cutoff, do we think that the email is spam. We are just going to draw the cut off here at 0.5, so if the probability is above 50%, we are just going to call it a spam email.
+
+```{r}
+##  Use the best model from the group
+predictionModel <- glm(numType ~ charDollar, family = "binomial", data = trainSpam)
+
+##  Get predictions on the test set
+predictionTest <- predict(predictionModel, testSpam)
+predictedSpam <- rep("nonspam", dim(testSpam)[1])
+
+##  Classify as 'spam' for those with prob > 0.5
+predictedSpam[predictionModel$fitted > 0.5] = "spam" 
+
+table(predictedSpam, testSpam$type)
+```
+
+* Here is the classification table that we get from the predicted and the real values.
+* Now we can just calculate the error rate. The mistakes that we made are on the off diagonal elements of this table, so 61 and 458. So, 61 were classified as spam that were not actuallt spam, and 458 were classified as non spam but actually were spam.
+
+```{r}
+##  Error rate
+(61+458)/(1346 + 458 + 61 + 449)
+```
+
+* So we calculate this error rate as about 22%
+
+##  Interpreting Results {#css_8}
+* It's important when you interpret your findings to use appropriate language and do not use language that goes beyond the analysis that you actually did.
+  + You want to use words like, "*prediction*" or "*it correlates with*", or "*certain vatiables may be associated with the outcome*" or "*the analysis is descriptive*".
+* Think carefully about what kind of language you use to interpret your results. It's also good to give an explanation for why certain models predict are better than others, if possible.
+
+##  Challenge the Findings {#css_9}
+* It's important that you, yourself, challenge all the results that you have found. Because if you don't do it, someone else is going to do it once they see your analysis, and so you might as well get one step ahead of everyone by doing it youself first. 
+  + Try to ask yourself this questions and give a reasonable aswer to:
+    - Is the question even a valid question to ask?
+    - Where did the data come from?
+    - How did you process the data?
+    - How did you do the analysis and draw any conclusions?
+    - If you have measures of uncertainty, are those the appropriate measures of uncertainty?
+    - And if you built models, why is your model the best model?
+    - Why is it an appropriate model for this problem?
+    - How do you choose the things to include in your model?
+    
+##  Synthesizing Results {#css_10}
+* Synthesis is very important because tipically in any data analysis, there are going many things that you did, so try to tell a **coherent story**. In our example:
+  + Can we use quantitative characteristics of the emails to classify them as spam or ham?
+    - Our approach was rather than try to get the ideal data set from all Google servers, we colleted some data from the UCI machine learning repository and created training and test sets from this data set.
+    - We explore some relationships between the carious predictors.
+    - We decided to use a logistic regression model on the training set and chose our single variable predictor by using cross validation.
+    - When we applied this model to the test set it was 78% accurate.
+    - The interpretation of our result was that basically, more dollar signs seemed to indicate an email was more likely to be spam, and this seems reasonable.
+    - We have all seen emails with lots of dollar signs in them trying to sell you something. This is both reasonable and understandable.
+    - Of course, the result were not particularly great as 78% test set accuracy is not that good for most prediction algorithms.
+    - We probably could do much better if we included more variables or if we included a more sophisticated model, maybe a non-linear model.
+* These are the kinds of things that you want to ouline to people as you go through data analysis and present it to other people.
+
+##  Creating a Reproducible Code {#css_11}
+* If someone cannot reproduce it the the conclusions that you draw will be not as worthy as an analysis where the result are reproducible.
+  + Try to stay organized.
+  + Try to use the tools for reproducible reserach to keep things organized and reproducible.
+* And t hat will make your evidence for your conclusion much more powerful.
+
+####  Keep track of your Software Environment
+* Here a few things that you should keep in mind as you keep track of your environment
+  + **Computer architecture**: CPU? GPU?
+  + **Operating system**  Windows? Mac OS? Linux/Unix?
+  + **Software toolchain**  C? Python? e etc.
+  + **Supporting software and infrasctructure** Software libraries, R packages, software dependencies
+  + **External dependencies** websites, data repositories, remote databases and software repositories.
+  + **Version numbers** keep track of the version numbers for everything you use, if possible.
+
+##  Including a call to sessionInfo() at the end of each report written in R
+* And **always set the seed** at the beginning of your code.
+  
+```{r}
+sessionInfo()
+```
 
