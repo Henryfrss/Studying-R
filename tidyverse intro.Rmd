@@ -1,0 +1,127 @@
+---
+title: "tidyverse"
+author: "Henry Frederick Ridwan Surjadi"
+date: "18 de maio de 2021"
+output: html_document
+---
+
+# Instalando pacote tidyverse
+```{r}
+#install.packages("tidyverse")
+```
+
+# Carrega tidyverse
+```{r}
+library(tidyverse)
+```
+
+* Os conflitos que ocorrem significam o seguinte:
+  + a função ggplot2::alpha() mascarou a função kernlab::alpha(), ou seja ao chama a função alpha() será utilizado a função do pacote ggplot2
+  + se for necessário utilizar a função alpha() do pacote kernlab, deve ser chamado dessa forma:
+    - kernlab::alpha()
+
+# Estado do dplyr
+```{r}
+#install.packages("nycflights13")
+library(nycflights13)
+```
+
+# Verificação dos dados
+```{r}
+flights[flights$month == 1 & flights$day == 15,]
+```
+
+# Utlizando a função dplyr
+* Ao utilizar um maior banco de dados, ocorre que voce precisa trabalhar com uma quantidade maior de variaveis e muitas observações, então faz necessário da utilização de pacotes que simplifiquem as condições ou parametros utilizados nas funções.
+  + Ou,seja, Não é necessário utilizar uma quantidade enorme de condições, pois o dplyr simplifica essas condições, como mostrado abaixo:
+```{r}
+filter(flights, month == 1, day == 15)
+```
+
+* NOTA: tome cuidado com os operadores lógicos das funções, pois o operador "&" tem precendencia sobre o operador "|"
+
+```{r}
+# Voos realizados no dia 15 do mes de janeiro e julho
+filter(flights, month %in% c(1, 7), day == 15)
+```
+
+* NOTA: o filter() seleciona linhas
+* e para selecionar colunas utiliza-se o select()
+
+```{r}
+# Selecionar todas as colunas menos as colunas dep_time até sched_arr_time
+select(flights, -(dep_time:sched_arr_time))
+```
+
+```{r}
+# Selecionar as colunas dep_time até sched_arr_time
+select(flights, (dep_time:sched_arr_time))
+```
+
+```{r}
+# para criar ou deletar uma coluna nova utiliza-se o mutate(), no exemplo criamos uma coluna veloc_media 
+mutate(flights, 
+       veloc_media = (distance * 1.6) / (air_time / 60)
+)
+```
+
+# NOTA
+* nunca faça um ordenação pelo comando sort(), pois ele irá ordenar apenas uma certa coluna tirando a sua ligação com as outras colunas
+* para ordernar, utilize a função arrange()
+
+```{r}
+arrange(flights, month, dep_delay)
+```
+
+# ggplot2
+
+```{r}
+mpg
+```
+
+```{r}
+ggplot(mpg) + 
+  geom_point( aes(x = displ, y = hwy) )
+```
+
+```{r}
+ggplot(mpg) +
+  geom_point( aes(x = displ, y = hwy , color = class )) 
+  
+```
+
+```{r}
+ggplot(mpg) +
+  geom_point( aes(x = displ, y = hwy , color = class ) ) +
+  geom_smooth( aes(x = displ, y = hwy) )
+  
+```
+
+```{r}
+ggplot(mpg) +
+  geom_point( aes(x = displ, y = hwy, ) , color = "blue" )
+```
+
+```{r}
+ggplot(mpg) +
+  geom_point( aes(x = displ, y = hwy ) ) +
+  facet_wrap(~ class, nrow = 2) +
+  labs( x = "Litragem do motor", y = "Consumo", title = "Consumo por classe de carro")
+```
+
+```{r}
+ggplot(mpg) +
+  geom_boxplot( aes(hwy) ) +
+  facet_wrap(~ class, nrow =2)
+```
+
+# PARA O PROBLEM SET
+* Tentem utilizar o readr()
+
+```{r}
+ggplot(mpg) +
+  geom_boxplot( aes(hwy, group = class, color = class)  )
+```
+
+# NAO FAÇAM LEITURA DE ARQUIVOS NO EXCEL
+* quando voce receber arquivos em excel, voce deve tratar para ter arquivos em formato CSV
