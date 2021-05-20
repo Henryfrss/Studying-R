@@ -1,0 +1,77 @@
+---
+title: "Problem set - Estatística"
+author: "Henry Frederick Ridwan Surjadi"
+date: "18 de maio de 2021"
+output: html_document
+---
+# README
+Problem set da turma 2021/01 da Pós-Graduação em Ciência de Dados coordenada pelo Prof. Abrantes Araújo Silva Filho, com o objetivo de registrar de modo reprodutível as análises univariada e bivariada que forem feitas em cima de um banco de dados de decolagens de aviões.
+
+#  A Pergunta (the question)
+*   Será possível utilizar características quantitativas para classificar um vôo atrasado?
+ 
+#   O Banco de Dados (data set)
+O **nycflights13** data set contém os dados de todos os vôos partindo de Nova York em 2013. Este data set foi disponibilizado pelo [U. S. Bureau of Transportation Statistics](https://www.bts.gov/), obtido no dia 20 de maio de 2021 em formato "zip", no endereço:
+
+*   <https://www.abrantes.pro.br/wp-content/uploads/2021/05/flights.csv.zip>;
+    +   O arquivo "flights.csv.zip" foi acessado pela URL acima e descompactado no diretório de trabalho.
+
+Mais informações nos links abaixo:
+
+*   <https://CRAN.R-project.org/package=nycflights13> 
+*   <https://cran.r-project.org/web/packages/dittodb/vignettes/nycflights.html>
+
+##  Leitura do banco de dados utilizando o *package readr* 
+```{r}
+library(readr)
+flights <- read.csv("flights.csv")
+str(flights)
+```
+O data set apresenta uma *structure* de 20 variáveis com 336776 observações de vôos, destaque para:
+
+*   As variáveis de tempo que em suma, se encontram no formato HHMM ou HMM;
+*   A variável de distância que se encontra no formato de milhas.
+
+
+# Análise Exploratória dos dados
+Queremos realizar uma análise exploratória univariada de todas as variáveis e uma análise exploratório bivariada, verificando se:
+
+*   Alguma empresa tem mais atraso que outra?
+*   Os atrasos dependem ou não da época do ano?
+*   Os atrasos depende ou não da hora programada de vôo?
+*   Os atrasos são mais comuns em alguns pares de aeroportos (origem/destino) do que outros?
+
+Utilizando-se de gráficos e estatística.
+
+*  Verificando os nomes das colunas, observa-se que todas são palavras essencialmente. 
+```{r}
+head(names(flights), 20)
+```
+Verificando as seis primeiras linhas, observa-se o data set se divide em dois grupos de variáveis:
+
+*   *Qualitativos*: id, year, month, day, flight, tailnum, origin, dest, time_hour;
+*   *Quantitativos*: dep-time, sched_dep_time, dep_delay, arr_time, arr_delay, air_time, distance, hour, minute.
+
+```{r}
+head(flights[,1:20])
+```
+Observa-se que existe variáveis apenas para a identificação, sem muita relevância para a nossa análise neste momento, logo podemos ignorá-las para uma melhor visualização dos nossos dados, sendo elas:
+
+*  "id" que é o indicador do número da linha;
+*  "carrier" que é a abreviatura do nome da empresa aérea;
+*  "flight" que é o número do vôo;
+*  "tailnum" que é o número de identificação na cauda do avião.
+
+Primeiro precisamos identificar quais são os vôos que atrasaram e uma forma de realizar isso, é criando uma coluna com valores categóricos. Para isso, vamos utilizar o "*package dplyr*"
+
+```{r}
+library(dplyr)
+flights.m <- mutate(flights, "delay" = if_else(dep_delay>=0 | arr_delay>=0, "yes", "no"))
+head(flights.m)
+```
+
+
+```{r}
+sessionInfo()
+```
+
