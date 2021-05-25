@@ -1,0 +1,242 @@
+---
+title: "Notas da aula de Estatistíca II"
+author: "Henry Frederick Ridwan Surjadi"
+date: "22 de maio de 2021"
+output: html_document
+---
+
+Residuo
+
+Quanto mais próximo de 0, melhor o residuo,
+Ou quanto mais longe de 0, pior é o residuo
+
+ntile
+
+summarize
+
+```{r}
+model <- lm(formula = PEFR ~ Exposure, data = lung)
+summary(model)
+#new <- data.frame(Exposure = 45)
+#predict(model, new, se.fit = TRUE)
+```
+
+```{r}
+lm(formula = PEFR ~ Exposure, data = lung)
+```
+
+#   Regressão Linear
+
+Modela o relacionamento entre a magnitude de uma variável e aquela de uma segunda.
+
+*   O propósito principal da regressão na ciência de dados é a previsão.
+
+*   A correlação é outro jeito de medir como duas variáveis estão relacionadas.
+
+*   A Diferença é que enquanto a correlação mede a força de uma associação entre duas variáveis, a regressão quantifica a natureza do relacionamento.
+
+```{r}
+library(readr)
+lung <- read.csv("LungDisease.csv")
+lm(formula = PEFR ~ Exposure, data = lung)
+```
+A equação da regressão linear é Y = b0 + b1X
+
+*   No Exemplo acima a eq:  PEFR = b0 + b1 * Exposure
+    +   PEFR = 424.583 -4.185 * Exposure
+        -   Interpretação: para cada ano adicional que um trabalhador é exposto à poeira de algodão, sua medição de PEFR é reduzida em -4.185.
+
+*   Os modelos de regressão costumam ser ajustados pelo método de mínimos quadrados (RSS)
+
+#   Regressão Linear Múltipla
+
+É a equação da regressão linear com múltiplas preditoras( Ou múltiplas variáveis)
+```{r}
+house <- read.csv("house_sales.csv")
+house_lm <- lm(AdjSalePrice ~ SqFtTotLiving + SqFtLot + Bathrooms + 
+                 Bedrooms + BldgGrade,  
+               data=house, na.action=na.omit)
+```
+
+#   Validação Cruzada
+
+Com um conjunto de dados menor, os analistas costumam querer usar todos os dados e ajustar o melhor modelo possível.
+
+####    Validação cruzada *k-fold*
+
+A validação cruzada estende a ideia de uma amostra de retenção para múltiplas amostras de retenção sequenciais.
+
+*   A divisão dos dados nas amostras de aplicação e na amostra de retenção tambem é chamda de *fold*
+
+#   Seleção do modelo
+
+Os estatísticos usam o princípio da navalha de *Occam* para guiar a escolha de um modelo: 
+
+* todas as coisas sendo iguais, deve-se preferir usar um modelo mais simples, ao invés de um mais complicado.
+
+Incluir variáveis adicionais sempre reduz o RMSE e aumenta o R²
+
+*   Para nao ocorrer esse erro, utiliza-se a métrica *AIC* que penaliza a adição de termos a um modelo.
+    +   O objetivo é encontrar o modelo que minimiza o AIC, modelos com mais *k* variáveis extra são penalizados em *2k*.
+    +   Outras variantes de métricas:
+        -   AICc;
+        -   BIC ou critério Bayesiano;
+        -   Cp de Mallows.
+        
+####  Regressão passo a passo
+Uma abordagem é procurar em todos os modelos possíveis, chamada de regressão de todos os subconjuntos, porém ela é cara e inviável para grandes dados e muitas variáveis.
+
+* Uma abordagem para encontrar um modelo que minimiza o AIC é a regressão passo a passo. que inclui e exclui sucessivamente os preditores.
+    +   Utiliza o pacote MASS de Venebles e Ripley:
+        -   com a função stepAIC.
+
+#####   Outras abordagens
+Abordagens mais simples são a seleção progressiva e a seleção regressiva:
+
+*   Seleção Regressiva: modelo cheio e retira-se os preditores que não são estatisticamente significativos.
+
+*   Seleção Progressiva:  Sem preditores e adiciona-se um a um.
+
+*   Regressão penalizada: aplica a penalizade reduzindo os coeficientes, em alguns casos até próximo de zero.
+    +   métodos de regressão penalizada:
+        - *ridge*; 
+        - e *lasso*
+*   A regressão passo a passo e todas as regressões de subconjunto está sujeita a sobreajuste e pode não ter um desempenho tão bom quando aplicada a novos dados.
+    +   Para evitar isso, utiliza-se a validação cruzada.
+
+####  Regressão Ponderada
+É utilizada em dois casos:
+
+*   Na ponderação de variância inversa, quando diferentes observações foram medidas com precisão diferente.
+*   Na análise de dados de forma agregada, de modo que a variável ponderada mostra quantas observações originais cada linha nos dados agregados representa. 
+
+#   Extrapolação
+
+Definição: A extensão de um modelo além da faixa dos dados usados para ajustá-lo.
+
+*   A extrapolação além da faixa dos dados pode levar a erros.
+
+
+#   Intervalos de Confiança e Previsão 
+
+Intervalos de Confiança são intervalos de *incerteza* posicionadas em torno dos coeficientes de regerssão e previsões. a incerteza em torno de Y(chapeu) vem de duas fontes:
+
+*   A incerteza em torno de quais variáveis preditoras e seus coeficientes;
+*   Erro adicional inerente em pontos de dado individuais.
+
+####    Intervalos de confiança
+Quantificam a incerteza em torno dos coeficientes de regressão.
+
+####    Intervalos de previsão
+Quantificam a incerteza em previsões invidividuais.
+
+#   Variáveis Categórica(Variáveis fatoriais)
+Assumem um número limitado de valores discretos
+
+*   A abordagem mais comum é converter uma variável em um conjunto de variáveis binárias *fictícias*
+    +   O *one hot enconding* é o modo-padrão de representar variáveis fatoriais.
+        -   utiliza-se a função model.matrix que converte um quadro de dados em uma matriz adequada em um modelo linear.
+  
+#   Variáveis Fatoriais com muitos níveis
+Algumas variáveis fatoriais podem produzir um número enorme de binários fictícios.
+
+*   Deve-se decidir se é útil manter todos os fatores ou se os níveis devem ser consolidados.
+```{r}
+
+library(dplyr)
+zip_groups <- house %>%
+  mutate(resid = residuals(house_lm)) %>%
+  group_by(ZipCode) %>%
+  summarize(med_resid = median(resid),
+            cnt = n()) %>%
+  # sort the zip codes by the median residual
+  arrange(med_resid) %>%
+  mutate(cum_cnt = cumsum(cnt),
+         ZipGroup = factor(ntile(cum_cnt, 5)))
+house <- house %>%
+  left_join(select(zip_groups, ZipCode, ZipGroup), by='ZipCode')
+house
+```
+
+#   Variáveis de Fator Ordenado
+Algumas variáveis fatoriais refletem os níveis de um fator.
+
+*   Tratar os fatores ordenados como uma variável numérica preserva a informação contida na ordem, e que seria perdida se fosse convertida em um fator.
+
+#   Multicolinearidade
+É uma condição em que há redundância entre as variáveis preditoras, e ocorre quando:
+
+*   Uma variável é incluida múltiplas vezes por erro;
+*   P *fictícios* em vez de P-1 fictícios, são criados de uma variável fatorial;
+*   Duas variáveis são quase perfeitamente correlacionadas uma à outra.
+
+*   OBS: Mutlicolinearidade pode causar instabilidade númerica no ajusta da equação de regressão.
+
+#   Variáveis Correlacionadas
+Com variáveis correlacionadas, o problema é de comissão: 
+*   Incluir diferentes variáveis que têm um relacionamento preditivo semelhante com a resposta.
+
+#   Variáveis de Confundimento
+O problema é de omissão:
+
+*   Uma variável importante não é incluida na equação de regressão.
+*   A interpretaçãi ingênua dos coeficientes da equação pode levar a conclusões invalidas.
+
+#   Interações e Efeitos Principais
+As interações são utilizadas quando um determinado problema, exista duas variáveis que parecem ter uma forte interação, para auxiliar na análise e encontrar uma resposta interdependente entre elas.
+*   Interações entre as variáveis no R, utiliza-se o operador *.
+
+*   OS efeitos principais são chamados de variável preditoras.
+```{r}
+lm(AdjSalePrice ~ SqFtTotLiving*ZipGroup + SqFtLot + Bathrooms + Bedrooms + BldgGrade + PropertyType, data = house, na.action = na.omit)
+```
+
+Um termo de iteração entre duas variáveis é necessário se o relacionamento entre as variáveis e a resposta for interdependente.
+
+#   Valores Influentes
+Um valor cuja ausência poderia alterar significativamente a equação de regressão é chamado de *observação influente*.
+*   Esse valor de dado é tido como um alto ponto alavanca na regressão.
+*   Uma medida comum de ponto alavanca é o valor chapéu(*hat values*). Valores acima de {(2 P + 1) / n} indicam um valor de dado de alta alavancagem.
+
+####  Distância de *Cook*
+Define como influência como uma combinação de alavancagem e tamanho residual.
+*   Uma observação tem grande influencia se a distância de Cook exceder {4 / (n - P - 1)}.
+
+#   Heteroscedasticidade
+É a falta de variância residual constante através da amplitude dos valores previstos.
+*   Em suma, os erros são maiores em algumas porções da amplitude do que em outras.
+    +   indica que os erros de previsão são diferentes para diferentes amplitudes de valores previstos, e pode sugerir um modelo incompleto.
+
+#   Regressão Polinomial
+Envolve a inclusão de termos a uma equação de regressão.
+*   utiliza-se a função poly, por exemplo a seguir está o ajuste de uma polinomial quadrática para SqTotLiving;
+```{r}
+house_98105 <- house[house$ZipCode == 98105,]
+lm_poly <- lm(AdjSalePrice ~  poly(SqFtTotLiving, 2) + SqFtLot + 
+                BldgGrade +  Bathrooms +  Bedrooms,
+              data=house_98105)
+lm_poly
+```
+
+Há dois coeficientes associados a SqFtTotLiving: um para o termo linear e um para o termo quadrático.
+
+*   Existem diversas maneiras sob as quais uma regressão pode ser estendida para capturar esses efeitos não lineares.
+
+#   Splines
+Uma abordagem alternativa, e geralmente superior para modelar relacionamentos não lineares, é o Splines, que oferecem um meio de interpolar suavemente com os pontos fixados.
+
+*   É uma série de trechos polinomias contínuos;
+    +   Os trechos polinomiais são suavemente conectados a uma série de pontos fixos em uma variável preditora, chamados de nós(*knots*)
+    +   Utiliza-se a função bs para cirar um termo *b-spline*
+```{r}
+library(splines)
+knots <- quantile(house_98105$SqFtTotLiving, p=c(.25, .5, .75))
+lm_spline <- lm(AdjSalePrice ~  bs(SqFtTotLiving, knots = knots, degree = 3) + SqFtLot + BldgGrade +  Bathrooms +  Bedrooms, data=house_98105)
+```
+Dois parametros devem ser especificados: o grau do polinomial e a localização dos nos.
+*   bs coloca nós nos limites
+```{r}
+#library(ggplot2)
+#ggplot(data = house_98105, mapping = aes(x=SqFtTotLiving, y=lm_spline$residuals)) + geom_smooth() + geom_point()
+```
+

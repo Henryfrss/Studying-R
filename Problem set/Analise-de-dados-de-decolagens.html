@@ -511,6 +511,25 @@ head(flights.m)</code></pre>
 ## 4 2013-01-01 05:00:00    no
 ## 5 2013-01-01 06:00:00    no
 ## 6 2013-01-01 05:00:00   yes</code></pre>
+<p>Após criado a coluna delay, vamos verificar quantos vôos foram classificados como atrasados</p>
+<pre class="r"><code>table(flights.m$delay, useNA = &quot;ifany&quot;)</code></pre>
+<pre><code>## 
+##     no    yes   &lt;NA&gt; 
+## 144346 183735   8695</code></pre>
+<p>Observa-se que existe 8695 registros que nao estão disponiveis(NA), estão vamos checkar se existe registros “NA” nas colunas “dep_delay” e “arr_delay”</p>
+<pre class="r"><code>summary(flights$dep_delay)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
+##  -43.00   -5.00   -2.00   12.64   11.00 1301.00    8255</code></pre>
+<pre class="r"><code>summary(flights$arr_delay)</code></pre>
+<pre><code>##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA&#39;s 
+##  -86.000  -17.000   -5.000    6.895   14.000 1272.000     9430</code></pre>
+<p>Verifica-se que existe 8255 “NA” na coluna dep_delay e 9430 “NA” na coluna arr_delay, isso indica que existe uma quantidade de 440 registros que “NA” em ambas as colunas dep_delay e arr_delay.</p>
+<pre class="r"><code>filter(flights, arr_delay == NA)</code></pre>
+<pre><code>##  [1] id             year           month          day            dep_time      
+##  [6] sched_dep_time dep_delay      arr_time       sched_arr_time arr_delay     
+## [11] carrier        flight         tailnum        origin         dest          
+## [16] air_time       distance       hour           minute         time_hour     
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>## R version 4.0.5 (2021-03-31)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)

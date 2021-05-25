@@ -64,10 +64,34 @@ Observa-se que existe variáveis apenas para a identificação, sem muita relev�
 
 Primeiro precisamos identificar quais são os vôos que atrasaram e uma forma de realizar isso, é criando uma coluna com valores categóricos. Para isso, vamos utilizar o "*package dplyr*"
 
+
 ```{r}
 library(dplyr)
 flights.m <- mutate(flights, "delay" = if_else(dep_delay>=0 | arr_delay>=0, "yes", "no"))
 head(flights.m)
+```
+
+Após criado a coluna delay, vamos verificar quantos vôos foram classificados como atrasados
+
+```{r}
+table(flights.m$delay, useNA = "ifany")
+```
+
+Observa-se que existe 8695 registros que nao estão disponiveis(NA), estão vamos verificar se existe registros "NA" nas colunas "dep_delay" e "arr_delay"
+
+```{r}
+summary(flights$dep_delay)
+summary(flights$arr_delay)
+```
+
+Verifica-se que existe 8255 "NA" na coluna dep_delay e 9430 "NA" na coluna arr_delay, isso indica que existe uma quantidade de 440 registros que "NA" em ambas as colunas dep_delay e arr_delay.
+*   **Duvida sobre essa quantidade de 440 registros...**
+
+```{r}
+
+#is.na(flights$arr_delay)
+#flights[flights$arr_delay == "NA" | flights$dep_delay == "NA", ]  
+#arr_delay == NA & dep_delay == NA
 ```
 
 
