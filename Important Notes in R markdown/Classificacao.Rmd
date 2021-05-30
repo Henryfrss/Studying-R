@@ -1,0 +1,194 @@
+---
+title: "Notes from Chapter 4 - Classificação"
+author: "Henry Frederick Ridwan Surjadi"
+date: "27 de maio de 2021"
+output: html_document
+---
+
+#   Identificar problemas de classificação
+
+O objetivo de prever se um registro é um 0 ou um 1, se for:
+
+*   0 ou 1 (phishing/não phishing, clicar/não clicar, desistir/não desistir);
+
+*   uma entre muitas categorias (por exemplo, a filtragem do Gmail em sua caixa de entrada em "principal", "social", "promoções" ou "fóruns").
+    
+A grande maioria dos problemas envolve uma resposta binária. Alguns problemas de classificação, no entanto, envolvem uma resposta com mais de dois resultados possíveis.
+
+*   Do ponto de vista de ajuste de modelo, costuma ser vantajoso converter problemas multiclasses em uma série de problemas binários.
+
+A abordagem geral é a seguinte: 
+
+    1. Estabelecer uma probabilidade de corte para a classe de interesse acima da qual consideramos um registro como pertencente àquela classe.
+
+    2. Estimar (com qualquer modelo) a probabilidade de um registro pertencer à classe de interesse.
+
+    3. Se tal probabilidade estiver acima da probabilidade de corte, atribuir o novo registro à classe de interesse.
+
+* Quanto maior o corte, menos registro previstos como 1.
+* Quanto menor o corte, mais registro previstos como 1.
+
+#   Utilizar a *Naive Bayes*
+O algoritmo Naive Bayes
+:   Usa a probabilidade de observação de valores preditores, dado um resultado, para estimar a probabilidade de observar o resultado Y = i, dado um conjunto de valores preditores.
+
+##  Classificação Bayesiana "não naive"
+Para cada registro a ser classificado:
+
+    1. Encontre todos os outros registros com o mesmo perfil preditivo (ou seja, nos quais os valores preditores sejam os mesmos)
+
+    2. Determine a quais classes aqueles registros pertencem e qual classe é prevalente (ou seja, provável)
+
+    3. Atribua aquela classe ao novo registro
+
+*   **As variáveis preditoras devem ser variáveis categóricas(fator) no algoritmo Naive Bayes padrão**
+
+##  A Solução Naive
+Na solução Naive Bayes, não restringimos mais o cálculo da probabilidade àqueles registros que se correspondem com o registro a ser classificado. Em vez disso usamos todo o conjunto de dados:
+
+    1.  Para uma resposta binária Y = i(i=0 ou 1), estime as probabilidades condicionais individuais para cada preditor P(Xj | Y) = i. 
+    -   Estas são as probabilidades de o valor preditor estar no registro quando observamos Y = i; 
+    -   Essa probabilidade é estimada pela proporção de valores Xj entre os registros Y = i no conjunto de treinamento.
+      
+    2.  Multiplique essas probabilidades uma pela outra, e então pela proporção de registros pertencentes a Y = i.
+    
+    3.  Repita os Passos 1 e 2 para todas as classes.
+    
+    4.  Estime uma probabilidade para o resultado i assumindo o valor calculado no passo 2 para classe i e dividindo-o pela soma de tais valores para todas as classes.
+    
+    5.  Atribua o registro à classe com a maior probabilidade para esse conjunto de valores preditores.
+
+O Classificador Bayesiano Naive é conhecido por produzir estimativas *enviesadas*.
+
+*   Mas se o objetivo é **ordenar os registros conforme a probabilidade de Y = 1**, as estimativas de probabilidade não enviesadas não são necessárias, e o Naive Bayes produz bons resultados.
+
+```{r}
+loan_data <- read.csv("loan_data.csv")
+library(MASS)
+library(klaR)
+naive_model <- NaiveBayes(as.factor(outcome) ~ purpose_ + home_ + emp_len_, data = na.omit(loan_data))
+naive_model$table
+```
+
+```{r}
+new_loan <- loan_data[147, c('purpose_', 'home_', 'emp_len_')]
+row.names(new_loan) <- NULL
+new_loan
+predict(naive_model, new_loan)
+```
+
+#   Utilizar a utilizar a regressão logistica
+É análoga à regressão linear múltipla, exceto pelo seu resultado ser binário. 
+
+*   **model** the probability of an event occurring depending on the values of the independent variables, which can be **categorical or numerical**;
+*   **estimate** the probability that an event occurs for a randomly selected observation versus the probability that the event does not occur;
+*   **predict** the effect of a series of variables on a binary response variable;
+*   **classify** observations by estimating the probability that an observation is in a particular category (such as approved or not approved in our problem).
+
+A ideia conceitual principal é o entendimento da *razão de chances*:
+
+$$ {odds ratio} = \frac{{Odds}(Y=1|X=1)}{{Odds}(Y=1|X=0)}$$
+É interpretado como as chances de Y = 1, quando X = 1 versus as chances de Y = 1 quando X = 0.
+
+*   Se a razão de chances for 2, então as chances de Y = 1 são duas vezes maiores quando X = 1 do que quando x = 0.
+
+Estimação de Máxima Verossimilhança(MLE) é um processo que tenta encontrar o modelo que mais provavelmente produziu os dados que observamos.
+
+*   Na equação da regressão logística, a resposta não é 0 ou 1, mas, sim, uma estimativa das chances de log de que a resposta seja 1.
+
+```{r}
+library(mgcv)
+logistic_gam <- gam(as.factor(outcome) ~ s(payment_inc_ratio) + purpose_ + 
+                      home_ + emp_len_ + s(borrower_score),
+                    data=loan_data, family='binomial')
+```
+
+```{r}
+library(ggplot2)
+terms <- predict(logistic_gam, type='terms')
+partial_resid <- resid(logistic_gam) + terms
+df <- data.frame(payment_inc_ratio = loan_data[, 'payment_inc_ratio'],
+                 terms = terms[, 's(payment_inc_ratio)'],
+                 partial_resid = partial_resid[, 's(payment_inc_ratio)'])
+
+ggplot(df, aes(x=payment_inc_ratio, y=partial_resid, solid = FALSE)) +
+  geom_point(shape=46, alpha=.4) +
+  geom_line(aes(x=payment_inc_ratio, y=terms), 
+            color='red', alpha=.5, size=1.5) +
+  labs(y='Partial Residual') +
+  xlim(0, 25) +
+  theme_bw()
+```
+
+
+#   Explicar o problema da classe rara
+A classe rara geralmente é a classe de maior interesse, e costuma ser designada como 1, ao contrário dos mais prevalentes 0s.
+(LER A PAG. 254 novamente)
+
+
+#   Utilizar matriz de confusão
+Matriz de confusão é uma tabela que mostra o número de previsões corretas e incorretas categorizadas por tipo de resposta.
+
+*   Os elementos diagonais da matriz mostram o número de previsões corretas
+*   Os elementos fora da diagonal mostram o número de previsões incorretas.
+
+```{r}
+#Exemplo usando a library "caret"
+# https://rdrr.io/cran/caret/man/confusionMatrix.html
+
+lvs <- c("normal", "abnormal")
+truth <- factor(rep(lvs, times = c(86, 258)),
+                levels = rev(lvs))
+pred <- factor(
+               c(
+                 rep(lvs, times = c(54, 32)),
+                 rep(lvs, times = c(27, 231))),
+               levels = rev(lvs))
+
+xtab <- table(pred, truth)
+library(caret)
+confusionMatrix(xtab)
+#confusionMatrix(pred, truth)
+#confusionMatrix(xtab, prevalence = 0.25)
+```
+OBS: TP = 231, TN = 54, FP = 32, FN = 27
+
+#   Conhecer métricas de avaliação do modelo
+
+|  |  | Confusion | Matrix | 
+|:-----|------:|:------:|:------:| 
+|  |  | Reference | Reference |
+|  |  | Event | No Event | 
+| Predicted | Event | TruePositive (TP) | FalsePositive (FP) | 
+| Predicted | No Event | FalseNegative (FN) | TrueNegative (TN) | 
+
+###   Acurácia
+É simplesmente uma medida do erro total:
+$$accuracy = \frac{\sum{}TruePositive+\sum{}TrueNegative}{Samplesize}$$
+
+###   Precisão
+A exatidão mede a precisão de um resultado previsto como positivo:
+$$precision = \frac{\sum_{}TruePositive}{\sum_{}TruePositive+\sum_{}FalsePositive}$$
+
+###   Revocação ou Recall
+Recall, tambem conhecida como *sensibilidade*, mede a força do modelo em prever um resultado positivo, A proporação de 1s que identifica corretamente.
+$$recall = \frac{\sum_{}TruePositive}{\sum_{}TruePositive+\sum_{}FalseNegative}$$
+
+###   Especidicidade
+Mede a habilidade de um modelo prever um resultado negativo
+$$specificity = \frac{\sum_{}TrueNegative}{\sum_{}TrueNegative+\sum_{}FalseNegative}$$
+
+###   Curva ROC
+Característica Operatória do Receptor(ROC) plota o *recall* no eixo y contra a *specificity* no eixo x, e ela mostra a troca entre recall e specificity conforme o corte é mudado para classificar um registro. É possível encontrar duas formas:
+
+*   specificity representada no eixo x, com 1 à esquerda e 0 à direita;
+*   Specificity representada no eixo x, com 0 à esquerda e 1 à direita.
+
+###   Curva AUC
+A AUC é simplesmente a área total sob a curva ROC. Quanto maior o valor da AUC, mais eficaz é o classificador. Uma AUC de 1 indica um classificador perfeito:
+*   classifica todos os 1s corretamente;
+*   e nao classifica erroneamente nenhum 0 como 1.
+*   Um classificador completamente ineficiente terá um AUC de 0,5.
+
+#   Confusão de Taxa de Falso Positivo
+O termo é usado para se referir à proporção de sinais positivos que são negativos reais.
